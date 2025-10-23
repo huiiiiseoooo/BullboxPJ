@@ -62,8 +62,14 @@ public class client {
             if(command.startsWith("STOR")){
                     dataServerSocket = OpenDataServerSocket();
 
+                    response = serverMsgReader.readLine();
+                    System.out.println("<- " + response);
+
                     commandBos.write((command+"\n").getBytes());
                     commandBos.flush();
+
+                    response = serverMsgReader.readLine();
+                    System.out.println("<- " + response);
 
                     dataSocket = dataServerSocket.accept();
                     System.out.println("connect success" + dataSocket.getInetAddress().getHostAddress());
@@ -79,8 +85,13 @@ public class client {
                             fbos.write(buffer, 0, bytesRead);
                         }
                         fbos.flush();
+                        response = serverMsgReader.readLine();
+                        System.out.println("<- " + response);
+                        System.out.println("file upload success");
+                    }catch (FileNotFoundException e){
+                        System.out.println("File not found"+e.getMessage());
                     }
-                    System.out.println("file upload success");
+
                 dataSocket.close();
                 dataServerSocket.close();
 

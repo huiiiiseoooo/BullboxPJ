@@ -84,12 +84,21 @@ public class server {
                 }else{
                     String filename = commands[1];
                     try{
+                        String response = "150 Opening ASCII mode data connection for " + filename + "\n";
+                        commandBosStream.write(response.getBytes());
+                        commandBosStream.flush();
+
                         //active서버 연결
                         dataSocket = ConnectDataServer(clientDataIp, clientDataPort);
                         System.out.println("success connect data Server.server \n");
 
                         InputStream dataIs = dataSocket.getInputStream();
                         fileController.createFile(filename, dataIs);
+
+                        response = "226 Transfer complete.\n";
+
+                        commandBosStream.write(response.getBytes());
+                        commandBosStream.flush();
                         dataSocket.close();
                     }catch (Exception e){
                         System.out.println("Dataserver connect failed"+e.getMessage());
@@ -104,12 +113,16 @@ public class server {
 
             if(commands[0].toUpperCase().equals("PORT")){
                 try{
-                    System.out.println(commands[1]);
                     String[] parts = commands[1].split(",");
                     clientDataIp = String.format("%s.%s.%s.%s", parts[0], parts[1], parts[2], parts[3]);
                     int p1 = Integer.parseInt(parts[4]);
                     int p2 = Integer.parseInt(parts[5]);
                     clientDataPort = p1*256 + p2;
+
+                    //200 성공 메세지 전송
+                    String response = "200 PORT command successful.\n";
+                    commandBosStream.write(response.getBytes());
+                    commandBosStream.flush();
                 }catch (Exception e){
                     System.out.println("can't receive port,ip \n"+e.getMessage());
                 }
