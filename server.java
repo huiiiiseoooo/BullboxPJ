@@ -8,74 +8,24 @@ import java.net.Socket;
 public class server {
     static final int commandPort = 21;
     static final int dataPort = 20;
-    public static void main(String[] args) throws IOException {
-        //커멘트 포트 연결 21
-        Socket commandsocket = serverStart();
 
-        //통신을 한 스트림 연결
-        InputStream commandInputStream = commandsocket.getInputStream();
-        OutputStream commandOutputStream = commandsocket.getOutputStream();
-        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(commandOutputStream);
-        BufferedReader br = new BufferedReader(new InputStreamReader(commandInputStream));
-
-        //파일 전송 포트 연결 20
-        Socket fileSocket = fileSocket(bufferedOutputStream);
-        InputStream fileInputStream = fileSocket.getInputStream();
-        OutputStream fileOutputStream = fileSocket.getOutputStream();
-
-        UserInfor userInfor = null;
-        FileController fileController = null;
-        String[] commands;
-
-        while(!commandsocket.isClosed()) {
-
-            try{
-                commands = br.readLine().split(" ");
-            }catch (Exception e){
-                System.out.println("client leave server");
-                break;
-            }
-
-            //로그인 기능 구현 아직 권한은 미구현
-            if(commands[0].equals("USER")){
-                userInfor = new UserInfor(bufferedOutputStream);
-                userInfor.userAuth(commands[1]);
-            }
-
-            if(commands[0].equals("PASS")){
-                userInfor.userPasswordAuth(commands[1]);
-            }
-
-            if(commands[0].equals("MKD")){
-                fileController = new FileController(bufferedOutputStream);
-                fileController.makeFolder(commands[1]);
-            }
-
-            if(commands[0].equals("RMD")){
-                fileController.deleteFolder(commands[1]);
-            }
-
-            if(commands[0].equals("STOR")){
-                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(commands[1])));
-                bos.write(fileInputStream.read());
-                bos.flush();
-            }
-
-
-        }
-
-    }
     public static Socket serverStart(){
-        ServerSocket commandserverSocket = null;
+        ServerSocket commandServerSocket = null;
         Socket socket = null;
         try{
-            commandserverSocket = new ServerSocket(commandPort);
-            socket = commandserverSocket.accept();
+            commandServerSocket = new ServerSocket(commandPort);
+            socket = commandServerSocket.accept();
         }catch (Exception e){
             System.out.println("client accept failed \n"+e.getMessage());
         }
-        System.out.println("client connected port is"+ commandserverSocket.getLocalPort());
+        System.out.println("client connected port is"+ commandServerSocket.getLocalPort());
         return socket;
+    }
+
+    public static Socket ConnectDataServer(String ipAddress, int dataPort) throws IOException {
+        Socket DataSocket = new Socket(ipAddress, dataPort);
+        System.out.println("success connect data server \n");
+        return DataSocket;
     }
 
     public static Socket fileSocket(BufferedOutputStream bos) throws IOException {
@@ -88,5 +38,59 @@ public class server {
         return filesocket;
     }
 
+    public static void main(String[] args) throws IOException {
+        //커멘트 포트 연결 21
+        Socket commandServerSocket = serverStart();
+
+        //통신을 한 스트림 연결
+        InputStream commandInputStream = commandServerSocket.getInputStream();
+        OutputStream commandOutputStream = commandServerSocket.getOutputStream();
+        BufferedOutputStream commandBosStream = new BufferedOutputStream(commandOutputStream);
+        BufferedReader commandBrStream = new BufferedReader(new InputStreamReader(commandInputStream));
+
+        //파일 전송 포트 연결 20
+        Socket dataSocket = null;
+
+        UserInfor userInfor = null;
+        FileController fileController = null;
+        String[] commands;
+
+        while(!commandServerSocket.isClosed()) {
+            try{
+                commands = commandBrStream.readLine().split(" ");
+            }catch (Exception e){
+                System.out.println("client leave server");
+                break;
+            }
+
+            //로그인 기능 구현 아직 권한은 미구현
+            if(commands[0].equals("USER")){
+                userInfor = new UserInfor(commandBosStream);
+                userInfor.userAuth(commands[1]);
+            }
+
+            if(commands[0].equals("PASS")){
+                userInfor.userPasswordAuth(commands[1]);
+            }
+
+            if(commands[0].equals("MKD")){
+                fileController = new FileController(commandBosStream);
+                fileController.makeFolder(commands[1]);
+            }
+
+            if(commands[0].equals("RMD")){
+                fileController.deleteFolder(commands[1]);
+            }
+
+            if(commands[0].equals("STOR")){
+                if(dataSocket == null){
+                    dataSocket = ConnectDataServer(commands[0], Integer.parseInt(commands[1]));
+                }
+            }
+
+
+        }
+
+    }
 
 }
