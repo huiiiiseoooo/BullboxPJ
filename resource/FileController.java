@@ -33,11 +33,14 @@ public class FileController {
         }
     }
 
-    public void fileRead(String path, String fileName, File file) throws IOException {
-        FileInputStream fis = new FileInputStream(file);
-
-
-
+    public void createFile(String fileName, InputStream dataIs) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(fileName)) {
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = dataIs.read(buffer)) != -1) {
+                fos.write(buffer, 0, bytesRead);
+            }
+        }
     }
 }
 
