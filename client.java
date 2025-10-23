@@ -3,12 +3,16 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class client {
-    static BufferedInputStream commandbufferedInputStream;
-    static BufferedOutputStream commandbufferedOutputStream;
+    //command버퍼 스트림
+    static BufferedInputStream commandBis;
+    static BufferedOutputStream commandBos;
+
     static Socket commandSocket;
-    public static Socket OpenDataServerSocket(BufferedOutputStream commandOutputStream) throws IOException {
+    static Socket dataSocket;
+    static ServerSocket dataServerSocket;
+
+    public static ServerSocket OpenDataServerSocket() throws IOException {
         ServerSocket dataServerSocket = new ServerSocket(0);
-        Socket socket = null;
 
         int dataPort = dataServerSocket.getLocalPort();
         byte[] ipAddress = commandSocket.getLocalAddress().getAddress();
@@ -20,19 +24,12 @@ public class client {
                 ipAddress[3] & 0xFF
                 );
 
-        String portCommand = String.format("%s %s\n",ipAddressString, dataPort);
+        String portCommand = String.format("PORT %s,%d,%d\n",ipAddressString, dataPort/256,dataPort%256);
 
-        commandOutputStream.write((portCommand.trim( )+"\n").getBytes());
-        commandOutputStream.flush();
+        commandBos.write((portCommand).getBytes());
+        commandBos.flush();
 
-        try{
-            socket = dataServerSocket.accept();
-            System.out.println("Accepted dataport " + dataPort);
-        }catch(IOException e){
-            System.out.println(e.getMessage());
-        }
-
-        return socket;
+        return dataServerSocket;
     }
 
 
@@ -42,32 +39,38 @@ public class client {
         commandSocket = new Socket("localhost",21);
 
         //active모드 연결 스트림 생성
-        Socket DataSocket = null;
+        dataServerSocket = null;
 
 
 
         //스트림 객체 생성
-        InputStream inputStream = commandSocket.getInputStream();
-        OutputStream outputStream = commandSocket.getOutputStream();
-        commandbufferedInputStream = new BufferedInputStream(inputStream);
-        commandbufferedOutputStream = new BufferedOutputStream(outputStream);
+        commandBis = new BufferedInputStream(commandSocket.getInputStream());
+        commandBos = new BufferedOutputStream(commandSocket.getOutputStream());
 
-        //command 전송 부분
+        //클라이언트 입력 받기 부분
         BufferedReader clientMsgReader = new BufferedReader(new InputStreamReader(System.in));
-        BufferedReader serverMsgReader = new BufferedReader(new InputStreamReader(commandbufferedInputStream));
+        //서버 응답 받아오기
+        BufferedReader serverMsgReader = new BufferedReader(new InputStreamReader(commandBis));
+
         String response;
+
         while(true) {
             String command = clientMsgReader.readLine();
             if(command.equals("exit")){
                 break;
             }
             if(command.equals("STOR")){
-                if(DataSocket == null) {
-                    DataSocket = OpenDataServerSocket(commandbufferedOutputStream);
+                if(dataServerSocket == null) {
+                    dataServerSocket = OpenDataServerSocket();
+
+                    response = serverMsgReader.readLine();
+                    commandBos.write(command.getBytes());
+                    commandBos.flush();
+
+                    dataSocket = dataServerSocket.accept();
+                    System.out.println("connect success"+dataSocket.getInetAddress().getHostAddress());
                 }
             }
-            commandbufferedOutputStream.write((command.trim()+"\n").getBytes());
-            commandbufferedOutputStream.flush();
 
             response = serverMsgReader.readLine();
             System.out.println(response);
