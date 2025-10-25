@@ -53,6 +53,7 @@ public class server {
         FileController fileController = new FileController(commandBosStream);
         String[] clientMsg;
         FtpCommand command;
+        String response;
 
         while(!commandServerSocket.isClosed()) {
             try{
@@ -89,26 +90,23 @@ public class server {
                 }else{
                     String filename = clientMsg[1];
                     try{
-                        String response = "150 Opening ASCII mode data connection for " + filename + "\n";
+                        response = "150 Opening ASCII mode data connection for " + filename + "\n";
                         commandBosStream.write(response.getBytes());
                         commandBosStream.flush();
 
                         //active서버 연결
                         dataSocket = ConnectDataServer(clientDataIp, clientDataPort);
-                        System.out.println("success connect data Server.server \n");
 
                         InputStream dataIs = dataSocket.getInputStream();
                         fileController.createFile(filename, dataIs);
-
-                        response = "226 Transfer complete.\n";
-
-                        commandBosStream.write(response.getBytes());
-                        commandBosStream.flush();
                         dataSocket.close();
+
                     }catch (Exception e){
                         System.out.println("Dataserver connect failed"+e.getMessage());
                     }
-
+                    response = "226 Transfer complete.\n";
+                    commandBosStream.write(response.getBytes());
+                    commandBosStream.flush();
                     //소켓 ip port 초기화
                     dataSocket = null;
                     clientDataIp = null;
@@ -130,7 +128,7 @@ public class server {
                     clientDataPort = p1*256 + p2;
 
                     //200 성공 메세지 전송
-                    String response = "200 PORT command successful.\n";
+                    response = "200 PORT command successful.\n";
                     commandBosStream.write(response.getBytes());
                     commandBosStream.flush();
                 }catch (Exception e){

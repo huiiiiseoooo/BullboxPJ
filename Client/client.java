@@ -58,7 +58,7 @@ public class client {
             //클라이언트 메세지 입력
             String clientMsg = clientMsgReader.readLine();
             //열거형으로 명령어 받기
-            FtpCommand command = FtpCommand.valueOf(clientMsg.split(" ")[0]);
+            FtpCommand command = FtpCommand.fromString(clientMsg.split(" ")[0]);
 
             if(clientMsg.equals("exit")){
                 break;
@@ -90,12 +90,13 @@ public class client {
                             fbos.write(buffer, 0, bytesRead);
                         }
                         fbos.flush();
-                        response = serverMsgReader.readLine();
-                        System.out.println("<- " + response);
-                        System.out.println("file upload success");
+
                     }catch (FileNotFoundException e){
                         System.out.println("File not found"+e.getMessage());
                     }
+                response = serverMsgReader.readLine();
+                System.out.println("<- " + response);
+                System.out.println("file upload success");
 
                 dataSocket.close();
                 dataServerSocket.close();
