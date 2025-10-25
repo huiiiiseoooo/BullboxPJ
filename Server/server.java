@@ -1,6 +1,7 @@
 package Server;
 
 import resource.FileController;
+import resource.FtpCommand;
 import resource.UserInfor;
 
 import java.io.*;
@@ -50,39 +51,43 @@ public class server {
 
         UserInfor userInfor = null;
         FileController fileController = new FileController(commandBosStream);
-        String[] commands;
+        String[] clientMsg;
+        FtpCommand command;
 
         while(!commandServerSocket.isClosed()) {
             try{
-                commands = commandBrStream.readLine().split(" ");
+                clientMsg = commandBrStream.readLine().split(" ");
+                command = FtpCommand.fromString(clientMsg[0]);
             }catch (Exception e){
                 System.out.println("Client.client leave Server.server");
                 break;
             }
 
             //로그인 기능 구현 아직 권한은 미구현
-            if(commands[0].equals("USER")){
+            if(command == FtpCommand.USER){
                 userInfor = new UserInfor(commandBosStream);
-                userInfor.userAuth(commands[1]);
+                userInfor.userAuth(clientMsg[1]);
             }
 
-            if(commands[0].equals("PASS")){
-                userInfor.userPasswordAuth(commands[1]);
+            if(command == FtpCommand.PASS){
+                userInfor.userPasswordAuth(clientMsg[1]);
+            }
+            //폴더 관리 부분
+            if(clientMsg[0].toUpperCase().equals("MKD")){
+
             }
 
-            if(commands[0].equals("MKD")){
-                fileController.makeFolder(commands[1]);
+            if(clientMsg[0].toUpperCase().equals("RMD")){
+
             }
 
-            if(commands[0].equals("RMD")){
-                fileController.deleteFolder(commands[1]);
-            }
-
-            if(commands[0].equals("STOR")){
+            //파일 관리 부분
+            //파일 업로드
+            if(command == FtpCommand.STOR){
                 if(clientDataIp == null && clientDataPort == -1){
                     System.out.println("Client.client data ip is null");
                 }else{
-                    String filename = commands[1];
+                    String filename = clientMsg[1];
                     try{
                         String response = "150 Opening ASCII mode data connection for " + filename + "\n";
                         commandBosStream.write(response.getBytes());
@@ -111,9 +116,14 @@ public class server {
                 }
             }
 
-            if(commands[0].toUpperCase().equals("PORT")){
+            if(command == FtpCommand.RETR){
+
+            }
+
+            //active모드시 클라이언트로부터 포트 받음
+            if(command == FtpCommand.PORT){
                 try{
-                    String[] parts = commands[1].split(",");
+                    String[] parts = clientMsg[1].split(",");
                     clientDataIp = String.format("%s.%s.%s.%s", parts[0], parts[1], parts[2], parts[3]);
                     int p1 = Integer.parseInt(parts[4]);
                     int p2 = Integer.parseInt(parts[5]);

@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import resource.FtpCommand;
+
 public class client {
     //command버퍼 스트림
     static BufferedInputStream commandBis;
@@ -34,8 +36,6 @@ public class client {
         return dataServerSocket;
     }
 
-
-
     public static void main(String[] args) throws IOException {
         //command 전송용 21번 포트로 서버 연결
         commandSocket = new Socket("localhost",21);
@@ -56,10 +56,12 @@ public class client {
 
         while(true) {
             String command = clientMsgReader.readLine();
+
             if(command.equals("exit")){
                 break;
             }
-            if(command.startsWith("STOR")){
+
+            if(command.toUpperCase().startsWith("STOR")){
                     dataServerSocket = OpenDataServerSocket();
 
                     response = serverMsgReader.readLine();
