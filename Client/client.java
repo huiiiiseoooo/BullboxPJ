@@ -1,10 +1,10 @@
 package Client;
 
+import resource.FtpCommand;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-
-import resource.FtpCommand;
 
 public class client {
     //command버퍼 스트림
@@ -55,19 +55,22 @@ public class client {
         String response;
 
         while(true) {
-            String command = clientMsgReader.readLine();
+            //클라이언트 메세지 입력
+            String clientMsg = clientMsgReader.readLine();
+            //열거형으로 명령어 받기
+            FtpCommand command = FtpCommand.valueOf(clientMsg.split(" ")[0]);
 
-            if(command.equals("exit")){
+            if(clientMsg.equals("exit")){
                 break;
             }
 
-            if(command.toUpperCase().startsWith("STOR")){
+            if(command == FtpCommand.STOR){
                     dataServerSocket = OpenDataServerSocket();
 
                     response = serverMsgReader.readLine();
                     System.out.println("<- " + response);
 
-                    commandBos.write((command+"\n").getBytes());
+                    commandBos.write((clientMsg +"\n").getBytes());
                     commandBos.flush();
 
                     response = serverMsgReader.readLine();
@@ -76,10 +79,10 @@ public class client {
                     dataSocket = dataServerSocket.accept();
                     System.out.println("connect success" + dataSocket.getInetAddress().getHostAddress());
 
-                    String filename = command.split(" ")[1];
+                    String filename = clientMsg.split(" ")[1];
 
                     try(BufferedOutputStream fbos = new BufferedOutputStream(dataSocket.getOutputStream());
-                        FileInputStream fileIs = new FileInputStream(filename);) {
+                        FileInputStream fileIs = new FileInputStream(filename)) {
 
                         byte[] buffer = new byte[4096];
                         int bytesRead;
