@@ -6,6 +6,8 @@ public enum FtpCommand {
     STOR,
     RETR,
     PORT,
+    MKD,
+    RMD,
     UNKNOWN;
 
     public static FtpCommand fromString(String command) {

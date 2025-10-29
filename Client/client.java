@@ -64,6 +64,14 @@ public class client {
                 break;
             }
 
+            if(command == FtpCommand.MKD){
+                commandBos.write((clientMsg+"\n").getBytes());
+                commandBos.flush();
+
+                response = serverMsgReader.readLine();
+                System.out.println("<-" + response);
+            }
+
             if(command == FtpCommand.STOR){
                     dataServerSocket = OpenDataServerSocket();
 

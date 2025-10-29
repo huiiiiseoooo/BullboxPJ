@@ -1,6 +1,7 @@
 package Server;
 
 import resource.FileController;
+import resource.FolderController;
 import resource.FtpCommand;
 import resource.UserInfor;
 
@@ -51,9 +52,12 @@ public class server {
 
         UserInfor userInfor = null;
         FileController fileController = new FileController(commandBosStream);
+        FolderController folderController = new FolderController(commandBosStream);
+
         String[] clientMsg;
-        FtpCommand command;
         String response;
+
+        FtpCommand command;
 
         while(!commandServerSocket.isClosed()) {
             try{
@@ -74,11 +78,13 @@ public class server {
                 userInfor.userPasswordAuth(clientMsg[1]);
             }
             //폴더 관리 부분
-            if(clientMsg[0].toUpperCase().equals("MKD")){
+            if(command == FtpCommand.MKD){
+                String dirPath = clientMsg[1];
+                folderController.makeFolder(dirPath);
 
             }
 
-            if(clientMsg[0].toUpperCase().equals("RMD")){
+            if(command == FtpCommand.RMD){
 
             }
 
