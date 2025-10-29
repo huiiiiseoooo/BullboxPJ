@@ -1,5 +1,6 @@
 package Client;
 
+import resource.FileController;
 import resource.FtpCommand;
 
 import java.io.*;
@@ -121,8 +122,32 @@ public class client {
                 dataServerSocket = null;
             }
 
-//            response = serverMsgReader.readLine();
-//            System.out.println(response);
+            if(command == FtpCommand.RETR){
+                dataServerSocket = OpenDataServerSocket();
+
+                response = serverMsgReader.readLine();
+                System.out.println("<- " + response);
+
+                commandBos.write((clientMsg +"\n").getBytes());
+                commandBos.flush();
+
+                response = serverMsgReader.readLine();
+                System.out.println("<- " + response);
+
+                dataSocket = dataServerSocket.accept();
+                System.out.println("connect success" + dataSocket.getInetAddress().getHostAddress());
+
+                FileController fileController = new FileController();
+                InputStream dataIs = dataSocket.getInputStream();
+                fileController.createFile(clientMsg.split(" ")[1], dataIs,false);
+
+                dataSocket.close();
+                dataServerSocket.close();
+
+                dataSocket = null;
+                dataServerSocket = null;
+            }
+
         }
     }
 }

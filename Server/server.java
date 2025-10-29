@@ -51,7 +51,7 @@ public class server {
         Socket dataSocket = null;
 
         UserInfor userInfor = null;
-        FileController fileController = new FileController(commandBosStream);
+        FileController fileController = new FileController( );
         FolderController folderController = new FolderController(commandBosStream);
 
         String[] clientMsg;
@@ -106,7 +106,7 @@ public class server {
                         dataSocket = ConnectDataServer(clientDataIp, clientDataPort);
 
                         InputStream dataIs = dataSocket.getInputStream();
-                        fileController.createFile(filename, dataIs);
+                        fileController.createFile(filename, dataIs,true);
                         dataSocket.close();
 
                     }catch (Exception e){
@@ -123,7 +123,33 @@ public class server {
             }
 
             if(command == FtpCommand.RETR){
+                if(clientDataIp == null && clientDataPort == -1){
+                    System.out.println("Client.client data ip is null");
+                }else {
+                    String filename = clientMsg[1];
+                    try {
+                        response = "150 Opening ASCII mode data connection for " + filename + "\n";
+                        commandBosStream.write(response.getBytes());
+                        commandBosStream.flush();
 
+                        //active서버 연결
+                        dataSocket = ConnectDataServer(clientDataIp, clientDataPort);
+
+                        fileController.downloadFile(filename, dataSocket);
+
+                        dataSocket.close();
+
+                    } catch (Exception e) {
+                        System.out.println("Dataserver connect failed" + e.getMessage());
+                    }
+                    response = "226 Transfer complete.\n";
+                    commandBosStream.write(response.getBytes());
+                    commandBosStream.flush();
+                    //소켓 ip port 초기화
+                    dataSocket = null;
+                    clientDataIp = null;
+                    clientDataPort = -1;
+                }
             }
 
             //active모드시 클라이언트로부터 포트 받음
