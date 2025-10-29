@@ -72,6 +72,14 @@ public class client {
                 System.out.println("<-" + response);
             }
 
+            if(command == FtpCommand.RMD){
+                commandBos.write((clientMsg+"\n").getBytes());
+                commandBos.flush();
+
+                response = serverMsgReader.readLine();
+                System.out.println("<-" + response);
+            }
+
             if(command == FtpCommand.STOR){
                     dataServerSocket = OpenDataServerSocket();
 

@@ -29,7 +29,7 @@ public class FolderController {
         File file = new File(UPLOAD_DIR + path);
         if(file.exists()) {
             file.delete();
-            msgbos.write("delete folder success \n".getBytes());
+            msgbos.write("200 delete folder success \n".getBytes());
             msgbos.flush();
         }else{
             msgbos.write("delete folder is not exist \n".getBytes());

@@ -78,14 +78,16 @@ public class server {
                 userInfor.userPasswordAuth(clientMsg[1]);
             }
             //폴더 관리 부분
+            //폴더 생성
             if(command == FtpCommand.MKD){
                 String dirPath = clientMsg[1];
                 folderController.makeFolder(dirPath);
 
             }
-
+            //폴더 삭제
             if(command == FtpCommand.RMD){
-
+                String dirPath = clientMsg[1];
+                folderController.deleteFolder(dirPath);
             }
 
             //파일 관리 부분
