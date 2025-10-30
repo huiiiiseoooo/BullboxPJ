@@ -61,7 +61,7 @@ public class client {
             //열거형으로 명령어 받기
             FtpCommand command = FtpCommand.fromString(clientMsg.split(" ")[0]);
 
-            if(clientMsg.equals("exit")){
+            if(clientMsg.equals("quit")){
                 break;
             }
 
@@ -74,6 +74,22 @@ public class client {
             }
 
             if(command == FtpCommand.RMD){
+                commandBos.write((clientMsg+"\n").getBytes());
+                commandBos.flush();
+
+                response = serverMsgReader.readLine();
+                System.out.println("<-" + response);
+            }
+
+            if(command == FtpCommand.CWD){
+                commandBos.write((clientMsg+"\n").getBytes());
+                commandBos.flush();
+
+                response = serverMsgReader.readLine();
+                System.out.println("<-" + response);
+            }
+
+            if(command == FtpCommand.PWD){
                 commandBos.write((clientMsg+"\n").getBytes());
                 commandBos.flush();
 

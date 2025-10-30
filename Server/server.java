@@ -51,7 +51,7 @@ public class server {
         Socket dataSocket = null;
 
         UserInfor userInfor = null;
-        FileController fileController = new FileController( );
+        FileController fileController = new FileController(commandBosStream);
         FolderController folderController = new FolderController(commandBosStream);
 
         String[] clientMsg;
@@ -88,6 +88,14 @@ public class server {
             if(command == FtpCommand.RMD){
                 String dirPath = clientMsg[1];
                 folderController.deleteFolder(dirPath);
+            }
+
+            if(command == FtpCommand.CWD){
+                folderController.changeWorkingDirectory(clientMsg[1]);
+            }
+
+            if(command == FtpCommand.PWD){
+                folderController.showWorkingDirectory();
             }
 
             //파일 관리 부분
@@ -135,7 +143,7 @@ public class server {
                         //active서버 연결
                         dataSocket = ConnectDataServer(clientDataIp, clientDataPort);
 
-                        fileController.downloadFile(filename, dataSocket);
+                        fileController.downloadFile(filename, dataSocket, true);
 
                         dataSocket.close();
 

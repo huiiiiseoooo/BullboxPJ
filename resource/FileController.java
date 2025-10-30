@@ -3,21 +3,25 @@ package resource;
 import java.io.*;
 import java.net.Socket;
 
-public class FileController {
-    private static final String UPLOAD_DIR = "Server/uploads/";
+public class FileController extends Controller {
 
-    public FileController( ) {
+    //생성자
+    public FileController(BufferedOutputStream bos) {
+        super(bos);
 
-        File uploadDir = new File(UPLOAD_DIR);
+        File uploadDir = new File(WORKING_DIR);
         if (!uploadDir.exists()) {
             uploadDir.mkdirs(); // 하위 디렉토리까지 생성
         }
     }
 
+    public FileController() {
+    }
+
     public void createFile(String fileName, InputStream dataIs, boolean select) throws IOException {
         File outputFile;
         if (select) {
-            outputFile = new File(UPLOAD_DIR + fileName);
+            outputFile = new File(WORKING_DIR + fileName);
         }else{
             outputFile = new File(fileName);
         }
@@ -30,8 +34,13 @@ public class FileController {
         }
     }
 
-    public void downloadFile(String fn, Socket dataSocket) throws IOException {
-        String filename = UPLOAD_DIR + fn;
+    public void downloadFile(String fn, Socket dataSocket, boolean select) throws IOException {
+        String filename;
+        if (select) {
+            filename = WORKING_DIR + fn;
+        }else{
+            filename = fn;
+        }
 
         try{
             BufferedOutputStream fbos = new BufferedOutputStream(dataSocket.getOutputStream());
