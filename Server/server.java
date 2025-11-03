@@ -80,118 +80,124 @@ public class server {
 
             //폴더 관리 부분
             //폴더 생성
-            if(command == FtpCommand.MKD){
-                String dirPath = clientMsg[1];
-                folderController.makeFolder(dirPath);
+            if(userInfor.userLoginStatus()){
+                if (command == FtpCommand.MKD) {
+                    String dirPath = clientMsg[1];
+                    folderController.makeFolder(dirPath);
 
-            }
+                }
 
-            //폴더 삭제
-            if(command == FtpCommand.RMD){
-                String dirPath = clientMsg[1];
-                folderController.deleteFolder(dirPath);
-            }
+                //폴더 삭제
+                if (command == FtpCommand.RMD) {
+                    String dirPath = clientMsg[1];
+                    folderController.deleteFolder(dirPath);
+                }
 
-            //작업폴더 변경로직 수정필요
-            if(command == FtpCommand.CWD){
-                folderController.changeWorkingDirectory(clientMsg[1]);
-            }
+                //작업폴더 변경로직 수정필요
+                if (command == FtpCommand.CWD) {
+                    folderController.changeWorkingDirectory(clientMsg[1]);
+                }
 
-            //현재작업폴더 조회
-            if(command == FtpCommand.PWD){
-                folderController.showWorkingDirectory();
-            }
+                //현재작업폴더 조회
+                if (command == FtpCommand.PWD) {
+                    folderController.showWorkingDirectory();
+                }
 
-            if(command == FtpCommand.LIST){
-                fileController.showFileList();
-            }
+                if (command == FtpCommand.LIST) {
+                    fileController.showFileList();
+                }
 
-            //파일 관리 부분
-            //파일 업로드
-            if(command == FtpCommand.STOR){
-                if(clientDataIp == null && clientDataPort == -1){
-                    System.out.println("Client.client data ip is null");
-                }else{
-                    String filename = clientMsg[1];
-                    try{
-                        response = "150 Opening ASCII mode data connection for " + filename + "\n";
+                //파일 관리 부분
+                //파일 업로드
+                if (command == FtpCommand.STOR) {
+                    if (clientDataIp == null && clientDataPort == -1) {
+                        System.out.println("Client.client data ip is null");
+                    } else {
+                        String filename = clientMsg[1];
+                        try {
+                            response = "150 Opening ASCII mode data connection for " + filename + "\n";
+                            commandBosStream.write(response.getBytes());
+                            commandBosStream.flush();
+
+                            //active서버 연결
+                            dataSocket = ConnectDataServer(clientDataIp, clientDataPort);
+
+                            InputStream dataIs = dataSocket.getInputStream();
+                            fileController.createFile(filename, dataIs, true);
+                            dataSocket.close();
+
+                        } catch (Exception e) {
+                            System.out.println("Dataserver connect failed" + e.getMessage());
+                        }
+                        response = "226 Transfer complete.\n";
                         commandBosStream.write(response.getBytes());
                         commandBosStream.flush();
-
-                        //active서버 연결
-                        dataSocket = ConnectDataServer(clientDataIp, clientDataPort);
-
-                        InputStream dataIs = dataSocket.getInputStream();
-                        fileController.createFile(filename, dataIs,true);
-                        dataSocket.close();
-
-                    }catch (Exception e){
-                        System.out.println("Dataserver connect failed"+e.getMessage());
+                        //소켓 ip port 초기화
+                        dataSocket = null;
+                        clientDataIp = null;
+                        clientDataPort = -1;
                     }
-                    response = "226 Transfer complete.\n";
+                }
+
+                if (command == FtpCommand.RETR) {
+                    if (clientDataIp == null && clientDataPort == -1) {
+                        System.out.println("Client.client data ip is null");
+                    } else {
+                        String filename = clientMsg[1];
+                        try {
+                            response = "150 Opening ASCII mode data connection for " + filename + "\n";
+                            commandBosStream.write(response.getBytes());
+                            commandBosStream.flush();
+
+                            //active서버 연결
+                            dataSocket = ConnectDataServer(clientDataIp, clientDataPort);
+
+                            fileController.downloadFile(filename, dataSocket, true);
+
+                            dataSocket.close();
+
+                        } catch (Exception e) {
+                            System.out.println("Dataserver connect failed" + e.getMessage());
+                        }
+                        response = "226 Transfer complete.\n";
+                        commandBosStream.write(response.getBytes());
+                        commandBosStream.flush();
+                        //소켓 ip port 초기화
+                        dataSocket = null;
+                        clientDataIp = null;
+                        clientDataPort = -1;
+                    }
+                }
+
+                if (command == FtpCommand.DELE) {
+                    fileController.deleteFile(clientMsg[1]);
+
+                    response = "200 Delete complete.\n";
                     commandBosStream.write(response.getBytes());
                     commandBosStream.flush();
-                    //소켓 ip port 초기화
-                    dataSocket = null;
-                    clientDataIp = null;
-                    clientDataPort = -1;
                 }
-            }
 
-            if(command == FtpCommand.RETR){
-                if(clientDataIp == null && clientDataPort == -1){
-                    System.out.println("Client.client data ip is null");
-                }else {
-                    String filename = clientMsg[1];
+                //active모드시 클라이언트로부터 포트 받음
+                if (command == FtpCommand.PORT) {
                     try {
-                        response = "150 Opening ASCII mode data connection for " + filename + "\n";
+                        String[] parts = clientMsg[1].split(",");
+                        clientDataIp = String.format("%s.%s.%s.%s", parts[0], parts[1], parts[2], parts[3]);
+                        int p1 = Integer.parseInt(parts[4]);
+                        int p2 = Integer.parseInt(parts[5]);
+                        clientDataPort = p1 * 256 + p2;
+
+                        //200 성공 메세지 전송
+                        response = "200 PORT command successful.\n";
                         commandBosStream.write(response.getBytes());
                         commandBosStream.flush();
-
-                        //active서버 연결
-                        dataSocket = ConnectDataServer(clientDataIp, clientDataPort);
-
-                        fileController.downloadFile(filename, dataSocket, true);
-
-                        dataSocket.close();
-
                     } catch (Exception e) {
-                        System.out.println("Dataserver connect failed" + e.getMessage());
+                        System.out.println("can't receive port,ip \n" + e.getMessage());
                     }
-                    response = "226 Transfer complete.\n";
-                    commandBosStream.write(response.getBytes());
-                    commandBosStream.flush();
-                    //소켓 ip port 초기화
-                    dataSocket = null;
-                    clientDataIp = null;
-                    clientDataPort = -1;
                 }
-            }
-
-            if(command == FtpCommand.DELE){
-                fileController.deleteFile(clientMsg[1]);
-
-                response = "200 Delete complete.\n";
+            }else{
+                response = "please login first \n";
                 commandBosStream.write(response.getBytes());
                 commandBosStream.flush();
-            }
-
-            //active모드시 클라이언트로부터 포트 받음
-            if(command == FtpCommand.PORT){
-                try{
-                    String[] parts = clientMsg[1].split(",");
-                    clientDataIp = String.format("%s.%s.%s.%s", parts[0], parts[1], parts[2], parts[3]);
-                    int p1 = Integer.parseInt(parts[4]);
-                    int p2 = Integer.parseInt(parts[5]);
-                    clientDataPort = p1*256 + p2;
-
-                    //200 성공 메세지 전송
-                    response = "200 PORT command successful.\n";
-                    commandBosStream.write(response.getBytes());
-                    commandBosStream.flush();
-                }catch (Exception e){
-                    System.out.println("can't receive port,ip \n"+e.getMessage());
-                }
             }
 
 

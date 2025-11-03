@@ -38,7 +38,10 @@ public class UserInfor {
             bos.write("wrong password \n".getBytes());
             bos.flush();
         }
+    }
 
+    public boolean userLoginStatus(){
+        return users.get(userId).IDAuth && users.get(userId).PasswordAuth;
     }
 
 }
