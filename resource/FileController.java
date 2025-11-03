@@ -56,5 +56,16 @@ public class FileController extends Controller {
             System.out.println("File not found"+e.getMessage());
         }
     }
+
+    public void showFileList() throws IOException {
+        File file = new File(WORKING_DIR);
+        File[] files = file.listFiles();
+        for (File f : files) {
+            msgbos.write((f.getName()+" ").getBytes());
+        }
+        msgbos.write(("\n").getBytes());
+        msgbos.flush();
+
+    }
 }
 

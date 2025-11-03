@@ -10,6 +10,7 @@ public enum FtpCommand {
     RMD,
     CWD,
     PWD,
+    LIST,
     UNKNOWN;
 
     public static FtpCommand fromString(String command) {

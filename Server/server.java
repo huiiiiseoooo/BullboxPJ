@@ -77,6 +77,7 @@ public class server {
             if(command == FtpCommand.PASS){
                 userInfor.userPasswordAuth(clientMsg[1]);
             }
+
             //폴더 관리 부분
             //폴더 생성
             if(command == FtpCommand.MKD){
@@ -84,18 +85,25 @@ public class server {
                 folderController.makeFolder(dirPath);
 
             }
+
             //폴더 삭제
             if(command == FtpCommand.RMD){
                 String dirPath = clientMsg[1];
                 folderController.deleteFolder(dirPath);
             }
 
+            //작업폴더 변경로직 수정필요
             if(command == FtpCommand.CWD){
                 folderController.changeWorkingDirectory(clientMsg[1]);
             }
 
+            //현재작업폴더 조회
             if(command == FtpCommand.PWD){
                 folderController.showWorkingDirectory();
+            }
+
+            if(command == FtpCommand.LIST){
+                fileController.showFileList();
             }
 
             //파일 관리 부분
