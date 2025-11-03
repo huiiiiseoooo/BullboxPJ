@@ -74,8 +74,16 @@ public class server {
                 userInfor.userAuth(clientMsg[1]);
             }
 
-            if(command == FtpCommand.PASS){
-                userInfor.userPasswordAuth(clientMsg[1]);
+            if (command == FtpCommand.PASS) {
+                if (userInfor == null) {
+                    // USER 명령어가 오지 않았는데 PASS를 시도함 (NullPointerException 방지)
+                    response = "503 Send USER first.\n";
+                    commandBosStream.write(response.getBytes());
+                    commandBosStream.flush();
+                } else {
+                    userInfor.userPasswordAuth(clientMsg[1]);
+                }
+                continue; // 다음 명령어를 받기 위해 루프의 처음으로 돌아감
             }
 
             //폴더 관리 부분
@@ -194,7 +202,7 @@ public class server {
                         System.out.println("can't receive port,ip \n" + e.getMessage());
                     }
                 }
-            }else{
+            }else if(userInfor == null){
                 response = "please login first \n";
                 commandBosStream.write(response.getBytes());
                 commandBosStream.flush();
