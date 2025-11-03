@@ -67,5 +67,10 @@ public class FileController extends Controller {
         msgbos.flush();
 
     }
+
+    public void deleteFile(String fn) throws IOException {
+        File file = new File(WORKING_DIR + fn);
+        file.delete();
+    }
 }
 

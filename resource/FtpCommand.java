@@ -11,6 +11,7 @@ public enum FtpCommand {
     CWD,
     PWD,
     LIST,
+    DELE,
     UNKNOWN;
 
     public static FtpCommand fromString(String command) {

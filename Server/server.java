@@ -168,6 +168,14 @@ public class server {
                 }
             }
 
+            if(command == FtpCommand.DELE){
+                fileController.deleteFile(clientMsg[1]);
+
+                response = "200 Delete complete.\n";
+                commandBosStream.write(response.getBytes());
+                commandBosStream.flush();
+            }
+
             //active모드시 클라이언트로부터 포트 받음
             if(command == FtpCommand.PORT){
                 try{

@@ -172,6 +172,14 @@ public class client {
                 dataServerSocket = null;
             }
 
+            if(command == FtpCommand.DELE){
+                commandBos.write((clientMsg+"\n").getBytes());
+                commandBos.flush();
+
+                response = serverMsgReader.readLine();
+                System.out.println("<- " + response);
+            }
+
         }
     }
 }
