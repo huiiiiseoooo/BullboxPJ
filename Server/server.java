@@ -68,7 +68,6 @@ public class server {
                 break;
             }
 
-            //로그인 기능 구현 아직 권한은 미구현
             if(command == FtpCommand.USER){
                 userInfor = new UserInfor(commandBosStream);
                 userInfor.userAuth(clientMsg[1]);
