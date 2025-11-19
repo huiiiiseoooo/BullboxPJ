@@ -12,6 +12,10 @@ public class HuffmanCoding {
     public FileInputStream fis;
     private PriorityQueue<Node> pq = new PriorityQueue<>();
     Node root;
+    String[] table = new String[256];
+    byte[] b;
+    String newLine;
+    byte[] sendBytes = new byte[4096];
 
     public HuffmanCoding(File file) throws IOException {
         this.file = file;
@@ -22,10 +26,21 @@ public class HuffmanCoding {
         }
 
         insertFile();
+        makeHuffman();
+        dfs(root,"");
+        grantNum();
+        encode();
+
+        for (int i = 0; i < table.length; i++) {
+            if (table[i] != null) {
+                System.out.println("'" + (char)i + "' = " + table[i]);
+            }
+        }
+        System.out.println(newLine);
     }
 
     public void insertFile() throws IOException {
-        byte[] b = fis.readAllBytes();
+        b = fis.readAllBytes();
         int[] freq = new int[256];
         for(int k: b){
             freq[k & 0xFF]++;
@@ -53,8 +68,38 @@ public class HuffmanCoding {
         root = parent;
     }
 
-    public void grantBytenum(){
+    public void dfs(Node node, String code){
+        if(node==null){
+            return;
+        }
+        if(node.left==null && node.right==null){
+            table[node.value] = code;
+            return;
+        }
+        dfs(node.left, code + "0");
+        dfs(node.right, code + "1");
+    }
 
+    public void grantNum(){
+        StringBuilder sb = new StringBuilder();
+        for(int k: b){
+            sb.append(table[k & 0xFF]);
+        }
+        while(sb.length() % 8 != 0){
+            sb.append("0");
+        }
+        newLine = sb.toString();
+    }
+
+    public void encode(){
+        String temp;
+        int valuetemp;
+        int index =0;
+        for(int i = 0; i <newLine.length(); i +=8){
+            temp = newLine.substring(i,i+8);
+            valuetemp = Integer.parseInt(temp,2);
+            sendBytes[index++] = (byte)valuetemp;
+        }
     }
 
 
